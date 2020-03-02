@@ -1,7 +1,7 @@
 # AWS MySql RDS CloudFormation Templates
 <table width="100%">
     <tr>
-        <th align="left" colspan="2"><h4><a href="https://github.com/stelligent/cloudformation_templates/blob/master/storage/mysql-rds.yml">MySQL RDS</a></h4></th>
+        <th align="left" colspan="2"><h4><a href="https://github.com/kkpkishan/aws-mysql-rds-cloudformation-templates/blob/master/mysql-rds.yml">MySQL RDS</a></h4></th>
     </tr>
     <tr>
         <td width="100%" valign="top">
@@ -11,7 +11,7 @@
             <li>VPC</li>
             <ul>
               <li>Public Subnet, IGW, Private Subnet/s.</li>
-              <li>Either use an existing VPC Infrastructure or you can use the following <a href="https://github.com/stelligent/cloudformation_templates/blob/master/infrastructure/vpc.yml" target="_blank">VPC Template</a> to create a one.</li>
+              <li>Either use an existing VPC Infrastructure or you can use the following <a href="https://github.com/kkpkishan/aws-vpc-cloudformation-Templates/blob/master/vpc.yml" target="_blank">VPC Template</a> to create a one.</li>
             </ul>
            </ol>
            <h6>Create Details</h6>
@@ -22,10 +22,6 @@
             <li>Cloud Watch Alarms</li>
             <li>Route 53 Record Set (Optional)</li>
            </ol>
-            <h6>Public S3 URL</h6>
-            <ol>
-             <oi>https://s3.amazonaws.com/stelligent-public/cloudformation-templates/github/mysql-rds.yml</li>
-            </ol>
         </td>
         <td nowrap width="200" valign="top">
             <table>
@@ -34,7 +30,7 @@
                 </tr>
                 <tr>
                     <td>
-                        <a href="https://console.aws.amazon.com/cloudformation/home?#/stacks/new?&templateURL=https://s3.amazonaws.com/stelligent-public/cloudformation-templates/github/mysql-rds.yml" target="_blank"><img src="https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png"></a>
+                        <a href="https://console.aws.amazon.com/cloudformation/home?#/stacks/new?&templateURL=https://github.com/kkpkishan/aws-mysql-rds-cloudformation-templates/blob/master/mysql-rds.yml" target="_blank"><img src="https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png"></a>
                     </td>
                 </tr>
             </table>
