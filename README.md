@@ -5,7 +5,7 @@
     </tr>
     <tr>
         <td width="100%" valign="top">
-           <p>Creates a MySQL RDS Database Instance.</p>
+           <p>Creates a RDS Database Instance.</p>
            <h6>Prerequisites</h6>
            <ol>
             <li>VPC</li>
