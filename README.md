@@ -1,7 +1,7 @@
-# AWS MySql RDS CloudFormation Templates
+# AWS  RDS CloudFormation Templates
 <table width="100%">
     <tr>
-        <th align="left" colspan="2"><h4><a href="https://github.com/kkpkishan/aws-mysql-rds-cloudformation-templates/blob/master/mysql-rds.yml">MySQL RDS</a></h4></th>
+        <th align="left" colspan="2"><h4><a href="https://github.com/kkpkishan/aws-rds-cloudformation-templates/blob/master/mysql-rds.yml">MySQL RDS</a></h4></th>
     </tr>
     <tr>
         <td width="100%" valign="top">
