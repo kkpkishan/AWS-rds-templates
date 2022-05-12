@@ -56,10 +56,6 @@ Parameters:
     Default: lambdaDeleteOldSnapshotsRDS-source
     Description: Name for RDS snapshot log group.
 Conditions:
-  # Share:
-  #   Fn::Equals:
-  #   - Ref: ShareSnapshots
-  #   - 'TRUE'
   DeleteOld:
     Fn::Equals:
     - Ref: DeleteOldSnapshots
