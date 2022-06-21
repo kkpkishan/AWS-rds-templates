@@ -1,5 +1,5 @@
 ---
-# Copyright 2020 Electromech
+# Copyright 2022 Electromech
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -24,7 +24,6 @@ Metadata:
       - ParentClientStack
       - ParentKmsKeyStack
       - ParentZoneStack
-#      - ParentSSHBastionStack
       - ParentAlertStack
     - Label:
         default: 'RDS Parameters'
@@ -38,8 +37,6 @@ Metadata:
       - DBMasterUserPassword
       - SubDomainNameWithDot
       - ReadSubDomainNameWithDot
-      - PreferredBackupWindow
-      - PreferredMaintenanceWindow
 Parameters:
   ParentVPCStack:
     Description: 'Stack name of parent VPC stack based on ALB_NAT_vpc_cloudformation_template.yml template.'
@@ -55,10 +52,6 @@ Parameters:
     Description: 'Optional stack name of parent zone stack based on ALB_NAT_vpc_cloudformation_template.yml template.'
     Type: String
     Default: ''
-#  ParentSSHBastionStack:
-#    Description: 'Optional but recommended stack name of parent SSH bastion host/instance stack based on vpc/vpc-*-bastion.yaml template.'
-#    Type: String
-#    Default: ''
   ParentAlertStack:
     Description: 'Optional but recommended stack name of parent alert stack based on alert.yaml template.'
     Type: String
@@ -67,31 +60,21 @@ Parameters:
     Description: 'Aurora engine and version'
     Type: String
     AllowedValues:
-    - '5.6.mysql-aurora.1.19.1' # aws rds describe-db-engine-versions --engine aurora --query 'DBEngineVersions[?contains(SupportedEngineModes,`provisioned`)].EngineVersion'
-    - aurora
+#    - '5.6.mysql-aurora.1.19.1' # aws rds describe-db-engine-versions --engine aurora --query 'DBEngineVersions[?contains(SupportedEngineModes,`provisioned`)].EngineVersion'
+#    - aurora
     - '5.7.mysql-aurora.2.04.3' # aws rds describe-db-engine-versions --engine aurora-mysql --query 'DBEngineVersions[?contains(SupportedEngineModes,`provisioned`)].EngineVersion'
     - '5.7.mysql-aurora.2.03.4'
+    - '5.7.mysql-aurora.2.10.1'
     - 'aurora-mysql'
-    - 'aurora-postgresql-10.7' # aws rds describe-db-engine-versions --engine aurora-postgresql --query 'DBEngineVersions[?contains(SupportedEngineModes,`provisioned`)].EngineVersion'
-    - 'aurora-postgresql-10.6'
-    - 'aurora-postgresql-10.5'
-    - 'aurora-postgresql-10.4'
-    - 'aurora-postgresql-9.6.12'
-    - 'aurora-postgresql'
-    Default: aurora
+    Default: aurora-mysql
   DBSnapshotIdentifier:
     Description: 'Optional identifier for the DB cluster snapshot from which you want to restore (leave blank to create an empty cluster).'
     Type: String
     Default: ''
-  AutoVersionUpgrade:
-    Description:  AutoMinorVersionUpgrade
-    Type: String
-    Default: 'false'
-    AllowedValues: ['true', 'false']
   DBInstanceClass:
     Description: 'The instance type of database server (see https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/Concepts.DBInstanceClass.html).'
     Type: String
-    Default: 'db.t2.small'
+    Default: 'db.t3.small'
   DBName:
     Description: 'Name of the database (ignored when DBSnapshotIdentifier is set, value used from snapshot).'
     Type: String
@@ -110,7 +93,10 @@ Parameters:
     Description: 'The master password for the DB instance (ignored when DBSnapshotIdentifier is set, value used from snapshot).'
     Type: String
     NoEcho: true
-    Default: ''
+    MinLength: '8'
+    MaxLength: '41'
+    AllowedPattern: '[a-zA-Z0-9]*'
+    ConstraintDescription: must contain only alphanumeric characters.
   SubDomainNameWithDot:
     Description: 'Name that is used to create the DNS entry with trailing dot, e.g. §{SubDomainNameWithDot}§{HostedZoneName}. Leave blank for naked (or apex and bare) domain. Requires ParentZoneStack parameter!'
     Type: String
@@ -119,28 +105,8 @@ Parameters:
     Description: 'Name that is used to create the read DNS entry with trailing dot, e.g. §{SubDomainNameWithDot}§{HostedZoneName}. Leave blank for naked (or apex and bare) domain. Requires ParentZoneStack parameter!'
     Type: String
     Default: 'read-aurora.'
-  PreferredBackupWindow:
-    Description: 'The daily time range in UTC during which you want to create automated backups.'
-    Type: String
-    Default: '09:54-10:24'
-  PreferredMaintenanceWindow:
-    Description: The weekly time range (in UTC) during which system maintenance can occur.
-    Type: String
-    Default: 'sat:07:00-sat:07:30'
 Mappings:
   EngineMap:
-    aurora:
-      Engine: aurora
-      EngineVersion: '5.6.10a'
-      Port: 3306
-      ClusterParameterGroupFamily: 'aurora5.6'
-      ParameterGroupFamily: 'aurora5.6'
-    '5.6.mysql-aurora.1.19.1':
-      Engine: aurora
-      EngineVersion: '5.6.mysql_aurora.1.19.1'
-      Port: 3306
-      ClusterParameterGroupFamily: 'aurora5.6'
-      ParameterGroupFamily: 'aurora5.6'
     'aurora-mysql':
       Engine: 'aurora-mysql'
       EngineVersion: '5.7.12'
@@ -159,46 +125,15 @@ Mappings:
       Port: 3306
       ClusterParameterGroupFamily: 'aurora-mysql5.7'
       ParameterGroupFamily: 'aurora-mysql5.7'
-    'aurora-postgresql':
-      Engine: 'aurora-postgresql'
-      EngineVersion: '9.6.3'
-      Port: 5432
-      ClusterParameterGroupFamily: 'aurora-postgresql9.6'
-      ParameterGroupFamily: 'aurora-postgresql9.6'
-    'aurora-postgresql-9.6.12':
-      Engine: 'aurora-postgresql'
-      EngineVersion: '9.6.12'
-      Port: 5432
-      ClusterParameterGroupFamily: 'aurora-postgresql9.6'
-      ParameterGroupFamily: 'aurora-postgresql9.6'
-    'aurora-postgresql-10.4':
-      Engine: 'aurora-postgresql'
-      EngineVersion: '10.4'
-      Port: 5432
-      ClusterParameterGroupFamily: 'aurora-postgresql10'
-      ParameterGroupFamily: 'aurora-postgresql10'
-    'aurora-postgresql-10.5':
-      Engine: 'aurora-postgresql'
-      EngineVersion: '10.5'
-      Port: 5432
-      ClusterParameterGroupFamily: 'aurora-postgresql10'
-      ParameterGroupFamily: 'aurora-postgresql10'
-    'aurora-postgresql-10.6':
-      Engine: 'aurora-postgresql'
-      EngineVersion: '10.6'
-      Port: 5432
-      ClusterParameterGroupFamily: 'aurora-postgresql10'
-      ParameterGroupFamily: 'aurora-postgresql10'
-    'aurora-postgresql-10.7':
-      Engine: 'aurora-postgresql'
-      EngineVersion: '10.7'
-      Port: 5432
-      ClusterParameterGroupFamily: 'aurora-postgresql10'
-      ParameterGroupFamily: 'aurora-postgresql10'
+    '5.7.mysql-aurora.2.10.1':
+      Engine: 'aurora-mysql'
+      EngineVersion: '5.7.mysql_aurora.2.10.1'
+      Port: 3306
+      ClusterParameterGroupFamily: 'aurora-mysql5.7'
+      ParameterGroupFamily: 'aurora-mysql5.7'
 Conditions:
   HasKmsKey: !Not [!Equals [!Ref ParentKmsKeyStack, '']]
   HasZone: !Not [!Equals [!Ref ParentZoneStack, '']]
-#  HasSSHBastionSecurityGroup: !Not [!Equals [!Ref ParentSSHBastionStack, '']]
   HasAlertTopic: !Not [!Equals [!Ref ParentAlertStack, '']]
   HasDBSnapshotIdentifier: !Not [!Equals [!Ref DBSnapshotIdentifier, '']]
   HasKmsKeyAndNotDBSnapshotIdentifier: !And [!Condition HasKmsKey, !Not [!Condition HasDBSnapshotIdentifier]]
@@ -242,13 +177,11 @@ Resources:
       VpcId: {'Fn::ImportValue': !Sub '${ParentVPCStack}-VPC'}
   ClusterSecurityGroupInSSHBastion:
     Type: 'AWS::EC2::SecurityGroupIngress'
-#    Condition: HasSSHBastionSecurityGroup
     Properties:
       GroupId: !Ref ClusterSecurityGroup
       IpProtocol: tcp
       FromPort: !FindInMap [EngineMap, !Ref Engine, Port]
       ToPort: !FindInMap [EngineMap, !Ref Engine, Port]
-#      SourceSecurityGroupId: {'Fn::ImportValue': !Sub '${ParentSSHBastionStack}-SecurityGroup'}
       CidrIp: {'Fn::ImportValue': !Sub '${ParentVPCStack}-CidrBlock'}
   DBSubnetGroup:
     Type: 'AWS::RDS::DBSubnetGroup'
@@ -282,15 +215,11 @@ Resources:
       DBSubnetGroupName: !Ref DBSubnetGroup
       Engine: !FindInMap [EngineMap, !Ref Engine, Engine]
       EngineMode: provisioned
-      AllowMajorVersionUpgrade: !Ref 'AutoVersionUpgrade'
-      AutoMinorVersionUpgrade: !Ref 'AutoVersionUpgrade'
       EngineVersion: !FindInMap [EngineMap, !Ref Engine, EngineVersion]
       KmsKeyId: !If [HasKmsKeyAndNotDBSnapshotIdentifier, {'Fn::ImportValue': !Sub '${ParentKmsKeyStack}-KeyId'}, !Ref 'AWS::NoValue']
       MasterUsername: !If [HasDBSnapshotIdentifier, !Ref 'AWS::NoValue', !Ref DBMasterUsername]
       MasterUserPassword: !If [HasDBSnapshotIdentifier, !Ref 'AWS::NoValue', !Ref DBMasterUserPassword]
       Port: !FindInMap [EngineMap, !Ref Engine, Port]
-      PreferredBackupWindow: !Ref PreferredBackupWindow
-      PreferredMaintenanceWindow: !Ref PreferredMaintenanceWindow
       SnapshotIdentifier: !If [HasDBSnapshotIdentifier, !Ref DBSnapshotIdentifier, !Ref 'AWS::NoValue']
       StorageEncrypted: !If [HasDBSnapshotIdentifier, !Ref 'AWS::NoValue', !If [HasKmsKey, true, false]]
       VpcSecurityGroupIds:
@@ -303,25 +232,15 @@ Resources:
   DBInstanceA:
     Type: 'AWS::RDS::DBInstance'
     Properties:
-      AllowMajorVersionUpgrade: false
-      AutoMinorVersionUpgrade: true
       CopyTagsToSnapshot: true
       DBClusterIdentifier: !Ref DBCluster
       DBInstanceClass: !Ref DBInstanceClass
       DBParameterGroupName: !Ref DBParameterGroup
       DBSubnetGroupName: !Ref DBSubnetGroup
       Engine: !FindInMap [EngineMap, !Ref Engine, Engine]
-  DBInstanceB:
-    Type: 'AWS::RDS::DBInstance'
-    Properties:
-      AllowMajorVersionUpgrade: false
-      AutoMinorVersionUpgrade: true
-      CopyTagsToSnapshot: true
-      DBClusterIdentifier: !Ref DBCluster
-      DBInstanceClass: !Ref DBInstanceClass
-      DBParameterGroupName: !Ref DBParameterGroup
-      DBSubnetGroupName: !Ref DBSubnetGroup
-      Engine: !FindInMap [EngineMap, !Ref Engine, Engine]
+      Tags:
+        - Key: CopyDBSnapshot
+          Value: TRUE
   DatabaseACPUUtilizationTooHighAlarm:
     Condition: HasAlertTopic
     Type: 'AWS::CloudWatch::Alarm'
@@ -333,25 +252,6 @@ Resources:
       Dimensions:
       - Name: DBInstanceIdentifier
         Value: !Ref DBInstanceA
-      EvaluationPeriods: 1
-      MetricName: CPUUtilization
-      Namespace: 'AWS/RDS'
-      OKActions:
-      - {'Fn::ImportValue': !Sub '${ParentAlertStack}-TopicARN'}
-      Period: 600
-      Statistic: Average
-      Threshold: 80
-  DatabaseBCPUUtilizationTooHighAlarm:
-    Condition: HasAlertTopic
-    Type: 'AWS::CloudWatch::Alarm'
-    Properties:
-      AlarmActions:
-      - {'Fn::ImportValue': !Sub '${ParentAlertStack}-TopicARN'}
-      AlarmDescription: 'Average database CPU utilization over last 10 minutes too high.'
-      ComparisonOperator: GreaterThanThreshold
-      Dimensions:
-      - Name: DBInstanceIdentifier
-        Value: !Ref DBInstanceB
       EvaluationPeriods: 1
       MetricName: CPUUtilization
       Namespace: 'AWS/RDS'
@@ -379,25 +279,6 @@ Resources:
       Period: 600
       Statistic: Average
       Threshold: 20
-  DatabaseBCPUCreditBalanceTooLowAlarm:
-    Condition: HasAlertTopic
-    Type: 'AWS::CloudWatch::Alarm'
-    Properties:
-      AlarmActions:
-      - {'Fn::ImportValue': !Sub '${ParentAlertStack}-TopicARN'}
-      AlarmDescription: 'Average database CPU credit balance over last 10 minutes too low, expect a significant performance drop soon.'
-      ComparisonOperator: LessThanThreshold
-      Dimensions:
-      - Name: DBInstanceIdentifier
-        Value: !Ref DBInstanceB
-      EvaluationPeriods: 1
-      MetricName: CPUCreditBalance
-      Namespace: 'AWS/RDS'
-      OKActions:
-      - {'Fn::ImportValue': !Sub '${ParentAlertStack}-TopicARN'}
-      Period: 600
-      Statistic: Average
-      Threshold: 20
   DatabaseAFreeableMemoryTooLowAlarm:
     Condition: HasAlertTopic
     Type: 'AWS::CloudWatch::Alarm'
@@ -409,25 +290,6 @@ Resources:
       Dimensions:
       - Name: DBInstanceIdentifier
         Value: !Ref DBInstanceA
-      EvaluationPeriods: 1
-      MetricName: FreeableMemory
-      Namespace: 'AWS/RDS'
-      OKActions:
-      - {'Fn::ImportValue': !Sub '${ParentAlertStack}-TopicARN'}
-      Period: 600
-      Statistic: Average
-      Threshold: 64000000 # 64 Megabyte in Byte
-  DatabaseBFreeableMemoryTooLowAlarm:
-    Condition: HasAlertTopic
-    Type: 'AWS::CloudWatch::Alarm'
-    Properties:
-      AlarmActions:
-      - {'Fn::ImportValue': !Sub '${ParentAlertStack}-TopicARN'}
-      AlarmDescription: 'Average database freeable memory over last 10 minutes too low, performance may suffer.'
-      ComparisonOperator: LessThanThreshold
-      Dimensions:
-      - Name: DBInstanceIdentifier
-        Value: !Ref DBInstanceB
       EvaluationPeriods: 1
       MetricName: FreeableMemory
       Namespace: 'AWS/RDS'
